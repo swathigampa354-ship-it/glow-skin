@@ -4,7 +4,7 @@ import { demoScan } from './lib/demo';
 import { generateRoutine, seasonFromColors, beautyTips, type Routine } from './lib/routine';
 import { loadHistory, saveHistory, toEntry, type HistoryEntry } from './lib/store';
 
-type Phase = 'landing' | 'analyzing' | 'results';
+type Phase = 'landing' | 'upload' | 'analyzing' | 'results';
 
 const CONCERN_LABELS: Record<string, string> = {
   wrinkle: 'Wrinkles', droopy_upper_eyelid: 'Upper eyelids', droopy_lower_eyelid: 'Lower eyelids',
@@ -50,7 +50,7 @@ export default function App() {
     setError(null);
     setImgBlob(f);
     setImgUrl(URL.createObjectURL(f));
-    setPhase('analyzing');
+    setPhase('upload');
   };
 
   const runDemo = () => {
@@ -123,7 +123,7 @@ export default function App() {
             <p className="hero-sub">Upload a selfie and get a full AI skin report in ~30 seconds — 14 concern scores with visual masks, your skin age, sun type, exact tone, and a routine built from your real results.</p>
             <div className="steps"><span>📸 Selfie</span>→<span>🧪 AI analysis</span>→<span>📋 Report + routine</span>→<span>📈 Progress</span></div>
             <div className="cta-row">
-              <button className="btn-primary" onClick={() => inputRef.current?.click()}>Upload a selfie</button>
+              <button className="btn-primary" onClick={() => setPhase("upload")}>Upload a selfie</button>
               <input ref={inputRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
               <button className="btn-ghost" onClick={runDemo}>Try demo (no photo)</button>
             </div>
@@ -132,17 +132,58 @@ export default function App() {
           </section>
         )}
 
+        {phase === 'upload' && (
+          <section className="upload-screen animate-rise">
+            <div className="upload-card glass-card">
+              <h1 className="upload-title">Upload Photo</h1>
+              <p className="upload-sub">Upload a clear, front-facing selfie for accurate analysis.</p>
+              <div
+                className="dropzone"
+                onClick={() => inputRef.current?.click()}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => { e.preventDefault(); onFile(e.dataTransfer.files?.[0]); }}
+              >
+                <input ref={inputRef} type="file" accept="image/*" hidden onChange={(e) => onFile(e.target.files?.[0])} />
+                {imgUrl ? (
+                  <img src={imgUrl} alt="selfie preview" className="dz-preview" />
+                ) : (
+                  <div className="dz-prompt">
+                    <span className="dz-icon">📷</span>
+                    <span className="dz-label">Tap to choose</span>
+                    <span className="dz-hint">JPEG or PNG · face in frame</span>
+                  </div>
+                )}
+              </div>
+              <button className="btn-primary analyze-btn" disabled={!imgBlob} onClick={() => setPhase('analyzing')}>
+                Analyze Skin
+              </button>
+              <button className="btn-ghost small demo-link" onClick={runDemo}>Try demo (no photo)</button>
+              {error && <div className="error">⚠ {error}</div>}
+            </div>
+          </section>
+        )}
+
         {phase === 'analyzing' && (
           <section className="analyzing">
-            {imgUrl && <img src={imgUrl} alt="selfie" className="selfie-preview" />}
-            <div className="spinner" />
-            <h2>Reading your skin…</h2>
-            <div className="step-list">
-              <div className="step done">✓ Skin analysis — 14 concerns</div>
-              <div className="step done">✓ Skin tone &amp; colors</div>
-              <div className="step done">✓ Fitzpatrick type</div>
+            <div className="analyzing-card glass-card">
+              <div className="ring-progress">
+                <svg viewBox="0 0 120 120" className="ring-progress-svg">
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="var(--ios-fill)" strokeWidth="4" />
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="var(--primary)" strokeWidth="4" strokeLinecap="round"
+                    strokeDasharray="339.292" strokeDashoffset="339.292" className="ring-progress-arc" />
+                </svg>
+                <div className="ring-progress-center">
+                  {imgUrl ? <img src={imgUrl} alt="selfie" className="ring-face" /> : <span className="ring-face-emoji">🧬</span>}
+                </div>
+              </div>
+              <h2 className="analyzing-title">Reading your skin…</h2>
+              <div className="step-list">
+                <div className="step">✓ Skin analysis — 14 concerns</div>
+                <div className="step">✓ Skin tone &amp; colors</div>
+                <div className="step">✓ Fitzpatrick type</div>
+              </div>
+              <p className="muted">{hasKey() ? 'Real YouCam AI analysis' : 'Demo analysis — add a YouCam key for real results'}</p>
             </div>
-            <p className="muted">{hasKey() ? 'Real YouCam AI analysis' : 'Demo analysis — add a YouCam key for real results'}</p>
           </section>
         )}
 

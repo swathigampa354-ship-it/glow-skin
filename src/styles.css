@@ -212,3 +212,37 @@ button { font-family: inherit; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* ---------- Stitch Upload + Analyzing screens ---------- */
+.upload-screen { display: flex; justify-content: center; padding: 24px 0 40px; }
+.upload-card { max-width: 400px; width: 100%; padding: 26px; text-align: center; }
+.upload-title { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; margin: 0 0 6px; }
+.upload-sub { color: var(--ios-secondary); font-size: 14px; margin: 0 0 18px; }
+.dropzone {
+  width: 100%; aspect-ratio: 1; border-radius: 20px;
+  border: 2px dashed var(--ios-separator); background: var(--ios-fill);
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  overflow: hidden; position: relative; margin-bottom: 16px;
+  transition: border-color var(--dur) var(--ease-out), background var(--dur) var(--ease-out);
+}
+.dropzone:hover { border-color: var(--primary); background: color-mix(in srgb, var(--primary) 6%, var(--ios-fill)); }
+.dz-prompt { display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--ios-secondary); pointer-events: none; }
+.dz-icon { font-size: 44px; }
+.dz-label { font-size: 15px; font-weight: 600; color: var(--primary); }
+.dz-hint { font-size: 12.5px; color: var(--ios-tertiary); }
+.dz-preview { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.analyze-btn { width: 100%; margin-top: 4px; }
+.analyze-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.demo-link { margin-top: 10px; width: 100%; }
+
+.analyzing { display: flex; justify-content: center; padding: 24px 0 40px; }
+.analyzing-card { max-width: 420px; width: 100%; padding: 30px 24px; text-align: center; }
+.ring-progress { position: relative; width: 170px; height: 170px; margin: 0 auto 20px; }
+.ring-progress-svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring-progress-arc { transition: stroke-dashoffset 3s linear; }
+.ring-progress-center { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; }
+.ring-face { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; border: 3px solid var(--primary); }
+.ring-face-emoji { font-size: 44px; }
+.analyzing-title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 14px; }
+.step-list { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-bottom: 8px; }
+.step { font-size: 13.5px; color: var(--ios-secondary); background: var(--ios-fill); padding: 8px 18px; border-radius: 999px; width: fit-content; animation: rise var(--dur) var(--ease-out) both; }
