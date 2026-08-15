@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fullScan, hasKey, type ScanResult } from './lib/youcam';
 import { demoScan } from './lib/demo';
-import { generateRoutine, type Routine } from './lib/routine';
+import { generateRoutine, seasonFromColors, beautyTips, type Routine } from './lib/routine';
 import { loadHistory, saveHistory, toEntry, type HistoryEntry } from './lib/store';
 
 type Phase = 'landing' | 'analyzing' | 'results';
@@ -29,6 +29,8 @@ export default function App() {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [activeMask, setActiveMask] = useState<string | null>(null);
   const [tab, setTab] = useState<'report' | 'routine' | 'history'>('report');
+  const [tips, setTips] = useState<string[]>([]);
+  const [season, setSeason] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => { setHistory(loadHistory()); }, []);
@@ -48,6 +50,8 @@ export default function App() {
     setTimeout(() => {
       const r = demoScan();
       setResult(r); setRoutine(generateRoutine(r.scores, r.fitzpatrick));
+      setTips(beautyTips(r.scores));
+      setSeason(seasonFromColors(r.colors, r.tone));
       setTab('report'); setPhase('results');
       const entry = toEntry(r);
       const next = [entry, ...history].slice(0, 20);
@@ -62,6 +66,8 @@ export default function App() {
       const r = hasKey() ? await fullScan(imgBlob) : demoScan();
       setResult(r);
       setRoutine(generateRoutine(r.scores, r.fitzpatrick));
+      setTips(beautyTips(r.scores));
+      setSeason(seasonFromColors(r.colors, r.tone));
       setTab('report'); setPhase('results');
       const entry = toEntry(r);
       setHistory((h) => {
@@ -135,7 +141,16 @@ export default function App() {
                 <h2 className="results-title">Your skin report</h2>
                 <p className="muted">{result.provider === 'youcam' ? '✨ Real YouCam AI analysis' : '🎬 Demo analysis'} · {Math.round(result.tookMs / 1000)}s</p>
               </div>
-              <button className="btn-ghost small" onClick={reset}>← New scan</button>
+              <div className="head-actions">
+                <button className="btn-ghost small" onClick={async () => {
+                  const text = `My Glow skin report: ${result.overall ?? '—'}/100 · skin age ${result.skinAge ?? '—'} · Fitzpatrick ${result.fitzpatrick ?? '—'} · top concern ${Object.entries(result.scores).sort((a,b)=>a[1]-b[1])[0]?.[0] ?? '—'} ✨`;
+                  try {
+                    if (navigator.share) await navigator.share({ title: 'Glow — my skin report', text });
+                    else { await navigator.clipboard.writeText(text); alert('Copied!'); }
+                  } catch {}
+                }}>📤 Share</button>
+                <button className="btn-ghost small" onClick={reset}>← New scan</button>
+              </div>
             </div>
 
             {/* summary cards */}
@@ -192,6 +207,17 @@ export default function App() {
                     <span key={k} className="color-chip"><i style={{ background: v }} />{k}: {v}</span>
                   ))}
                 </div>
+                {season && (
+                  <div className="season-card">
+                    <b>🎨 Your color season:</b> {season}
+                  </div>
+                )}
+                {tips.length > 0 && (
+                  <div className="tips-card">
+                    <b>💡 Quick glow-up tips</b>
+                    <ul>{tips.map((t) => <li key={t}>{t}</li>)}</ul>
+                  </div>
+                )}
               </>
             )}
 
@@ -227,6 +253,17 @@ export default function App() {
                         </div>
                       ))}
                     </div>
+                    {history.length >= 2 && (
+                      <div className="spark">
+                        <b>Trend</b>
+                        <div className="spark-bars">
+                          {[...history].reverse().map((h) => (
+                            <span key={h.id} style={{ height: `${h.overall ?? 0}%` }} title={`${h.overall}`} />
+                          ))}
+                        </div>
+                        <small>{history[0].overall} → {history[history.length - 1].overall}</small>
+                      </div>
+                    )}
                     {prev && result.overall !== null && prev.overall !== null && (
                       <div className="progress">
                         <b>Progress:</b> {prev.overall} → {result.overall}
