@@ -121,8 +121,35 @@ async function runFitzpatrick(key: string, blob: Blob): Promise<string | null> {
 
 // ---- public entry ----------------------------------------------------------
 
-export async function fullScan(blob: Blob): Promise<ScanResult> {
+/**
+ * Prepares the selfie for analysis: center-crops a square around the face
+ * region (faces sit in the upper-center of selfies) and scales to 640×640.
+ * YouCam's analyzers reject faces that are too small in-frame
+ * (error_src_face_too_small). Empirically verified: a crop window of
+ * ~0.70× the smaller dimension, centered at (w/2, 0.40h), passes
+ * skin-analysis (0.85× fails).
+ */
+export async function prepareImage(file: File | Blob): Promise<Blob> {
+  const bitmap = await createImageBitmap(file);
+  const { width: w, height: h } = bitmap;
+  // square crop window, centered horizontally, biased to upper-middle (face zone)
+  const size = Math.round(Math.min(w, h) * 0.7);
+  const cx = w / 2;
+  const cy = h * 0.4;
+  const sx = Math.max(0, Math.min(cx - size / 2, w - size));
+  const sy = Math.max(0, Math.min(cy - size / 2, h - size));
+
+  const out = 640;
+  const canvas = new OffscreenCanvas(out, out);
+  const ctx = canvas.getContext('2d')!;
+  ctx.drawImage(bitmap, sx, sy, size, size, 0, 0, out, out);
+  const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.9 });
+  return blob;
+}
+
+export async function fullScan(file: File | Blob): Promise<ScanResult> {
   const key = (import.meta.env.VITE_YOUCAM_KEY as string).trim();
+  const blob = await prepareImage(file);
   const start = performance.now();
   // run all three analyses in parallel (independent tasks)
   const [skin, tone, fitz] = await Promise.all([
