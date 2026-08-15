@@ -3,6 +3,7 @@ import { fullScan, hasKey, type ScanResult } from './lib/youcam';
 import { demoScan } from './lib/demo';
 import { generateRoutine, seasonFromColors, beautyTips, type Routine } from './lib/routine';
 import { loadHistory, saveHistory, toEntry, type HistoryEntry } from './lib/store';
+import { BUILD_VERSION, BUILD_DATE } from './version';
 
 type Phase = 'landing' | 'upload' | 'analyzing' | 'results';
 
@@ -370,7 +371,7 @@ export default function App() {
         </nav>
       )}
 
-      <footer className="footer">Glow · AI Skin Intelligence · powered by YouCam · built for the YouCam API Hackathon</footer>
+      <footer className="footer">Glow · AI Skin Intelligence · powered by YouCam · built for the YouCam API Hackathon<br /><span className="build-badge">v{BUILD_VERSION} · build {BUILD_DATE}</span></footer>
     </div>
   );
 }

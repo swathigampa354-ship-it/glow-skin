@@ -246,3 +246,4 @@ button { font-family: inherit; }
 .analyzing-title { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; margin: 0 0 14px; }
 .step-list { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-bottom: 8px; }
 .step { font-size: 13.5px; color: var(--ios-secondary); background: var(--ios-fill); padding: 8px 18px; border-radius: 999px; width: fit-content; animation: rise var(--dur) var(--ease-out) both; }
+.build-badge { display: inline-block; margin-top: 6px; font-size: 11px; color: var(--ios-tertiary); background: var(--ios-fill); padding: 3px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
