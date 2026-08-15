@@ -32,6 +32,13 @@ export default function App() {
   const [tips, setTips] = useState<string[]>([]);
   const [season, setSeason] = useState<string>('');
   const inputRef = useRef<HTMLInputElement>(null);
+  const [dark, setDark] = useState<boolean>(() =>
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
+  );
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  }, [dark]);
 
   useEffect(() => { setHistory(loadHistory()); }, []);
 
@@ -99,7 +106,17 @@ export default function App() {
       <header className="topbar">
         <span className="brand">✨ Glow</span>
         <span className="tag">AI Skin Intelligence</span>
-        {!hasKey() && <span className="demo-badge">demo mode</span>}
+        <span className="top-right">
+          {!hasKey() && <span className="demo-badge">demo mode</span>}
+          <button
+            className="icon-btn"
+            onClick={() => setDark((d) => !d)}
+            aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+            title={dark ? 'Light mode' : 'Dark mode'}
+          >
+            {dark ? '☀️' : '🌙'}
+          </button>
+        </span>
       </header>
 
       <main className="wrap">
