@@ -16,7 +16,7 @@ const FITZ_INFO: Record<string, string> = {
   I: 'Burns easily, never tans', II: 'Burns, tans minimally', III: 'Sometimes burns, tans gradually',
   IV: 'Rarely burns, tans easily', V: 'Very rarely burns', VI: 'Almost never burns',
 };
-const scoreColor = (s: number) => (s >= 85 ? '#16a34a' : s >= 70 ? '#d4a017' : '#dc2626');
+const scoreColor = (s: number) => (s >= 85 ? '#34c759' : s >= 70 ? '#ff9f0a' : '#ff3b30'); // iOS green/orange/red
 
 export default function App() {
   const [phase, setPhase] = useState<Phase>('landing');
@@ -105,7 +105,7 @@ export default function App() {
     <div className="page">
       <header className="topbar">
         <span className="brand">✨ Glow</span>
-        <span className="tag">AI Skin Intelligence</span>
+        <span className="tag">AI SKIN INTELLIGENCE</span>
         <span className="top-right">
           {!hasKey() && <span className="demo-badge">demo mode</span>}
           <button
