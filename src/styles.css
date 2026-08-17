@@ -247,3 +247,47 @@ button { font-family: inherit; }
 .step-list { display: flex; flex-direction: column; gap: 8px; align-items: center; margin-bottom: 8px; }
 .step { font-size: 13.5px; color: var(--ios-secondary); background: var(--ios-fill); padding: 8px 18px; border-radius: 999px; width: fit-content; animation: rise var(--dur) var(--ease-out) both; }
 .build-badge { display: inline-block; margin-top: 6px; font-size: 11px; color: var(--ios-tertiary); background: var(--ios-fill); padding: 3px 10px; border-radius: 999px; font-variant-numeric: tabular-nums; }
+
+/* ---------- GLOW Verdict additions ---------- */
+.verdict-tag { display: inline-block; margin-top: 5px; font-size: 10px; font-weight: 700; border-radius: 999px; padding: 2px 8px; margin-right: 4px; }
+.v-trustworthy { color: var(--green); background: color-mix(in srgb, var(--green) 14%, transparent); }
+.v-borderline { color: var(--amber); background: color-mix(in srgb, var(--amber) 14%, transparent); }
+.v-noise, .v-saturated { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+.uncertainty-card { padding: 16px 18px; animation: rise var(--dur) var(--ease-out) both; }
+.unc-summary { font-size: 13px; color: var(--ios-secondary); margin: 6px 0 10px; line-height: 1.5; }
+.unc-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 10px; }
+.unc-chip { font-size: 11px; font-weight: 600; border-radius: 999px; padding: 4px 10px; }
+.unc-chip.good { color: var(--green); background: color-mix(in srgb, var(--green) 12%, transparent); }
+.unc-chip.warn { color: var(--amber); background: color-mix(in srgb, var(--amber) 12%, transparent); }
+.unc-chip.bad { color: var(--red); background: color-mix(in srgb, var(--red) 10%, transparent); }
+.gen-note { display: block; margin-top: 8px; font-size: 10.5px; color: var(--ios-tertiary); }
+.signature-card { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; gap: 10px; cursor: pointer; transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out); }
+.signature-card:hover { transform: translateY(-1px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+.sig-left { display: flex; align-items: center; gap: 12px; }
+.sig-emoji { font-size: 26px; }
+.sig-left b { display: block; font-size: 15px; }
+.sig-trait { display: block; font-size: 12px; color: var(--ios-secondary); }
+.sig-line { display: block; font-size: 11.5px; color: var(--ios-tertiary); font-style: italic; }
+.sig-talent { font-size: 11.5px; color: var(--primary); font-weight: 600; }
+.sig-hint { font-size: 10.5px; color: var(--ios-tertiary); }
+.canons-card { padding: 16px 18px; }
+.canon { margin-top: 10px; font-size: 12.5px; }
+.canon b { font-size: 13px; }
+.canon-kind { font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 999px; padding: 2px 8px; margin-left: 6px; }
+.k-description { color: var(--ios-blue); background: color-mix(in srgb, var(--ios-blue) 12%, transparent); }
+.k-prescription { color: var(--amber); background: color-mix(in srgb, var(--amber) 12%, transparent); }
+.k-scorecard { color: var(--red); background: color-mix(in srgb, var(--red) 10%, transparent); }
+.canon p { margin: 4px 0; color: var(--ios-secondary); line-height: 1.5; }
+.canon small { color: var(--ios-tertiary); }
+.modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; z-index: 100; padding: 20px; animation: rise var(--dur) var(--ease-out) both; }
+.share-card { position: relative; width: 100%; max-width: 340px; padding: 28px 24px; text-align: center; animation: pop 300ms var(--ease-spring) both; }
+.share-close { position: absolute; top: 12px; right: 14px; background: none; border: none; color: var(--ios-secondary); font-size: 16px; cursor: pointer; }
+.share-brand { font-size: 13px; font-weight: 700; letter-spacing: 0.04em; color: var(--primary); }
+.share-score { font-size: 64px; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; margin: 10px 0 4px; }
+.share-score span { font-size: 22px; color: var(--ios-tertiary); }
+.share-sig { font-size: 20px; font-weight: 700; margin-top: 6px; }
+.share-line { font-size: 13px; color: var(--ios-secondary); font-style: italic; margin-top: 4px; }
+.share-meta { display: flex; gap: 8px; justify-content: center; margin: 12px 0; font-size: 12px; color: var(--ios-secondary); }
+.share-verdicts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-bottom: 16px; }
+.share-cta { display: flex; gap: 8px; justify-content: center; }
+.share-foot { margin-top: 14px; font-size: 10.5px; color: var(--ios-tertiary); letter-spacing: 0.03em; }

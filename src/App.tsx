@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fullScan, hasKey, type ScanResult } from './lib/youcam';
 import { demoScan } from './lib/demo';
+import { buildVariance, skinSignature, CANONS, VERDICT_LABEL, type VarianceReport, type Signature } from './lib/verdict';
 import { generateRoutine, seasonFromColors, beautyTips, type Routine } from './lib/routine';
 import { loadHistory, saveHistory, toEntry, type HistoryEntry } from './lib/store';
 import { BUILD_VERSION, BUILD_DATE } from './version';
@@ -35,6 +36,10 @@ export default function App() {
   const [tab, setTab] = useState<'report' | 'routine' | 'progress'>('report');
   const [tips, setTips] = useState<string[]>([]);
   const [season, setSeason] = useState<string>('');
+  const [variance, setVariance] = useState<VarianceReport | null>(null);
+  const [signature, setSignature] = useState<Signature | null>(null);
+  const [checking, setChecking] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [dark, setDark] = useState<boolean>(() =>
     typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
@@ -60,6 +65,7 @@ export default function App() {
     setPhase('analyzing');
     setTimeout(() => {
       const r = demoScan();
+      setSignature(skinSignature(r.scores));
       applyResult(r);
     }, 2200);
   };
@@ -98,7 +104,25 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, imgBlob]);
 
-  const reset = () => { setPhase('landing'); setResult(null); setImgUrl(null); setImgBlob(null); setError(null); setActiveMask(null); setActiveConcern(null); };
+  // Deep check: re-scan up to 3× (real) or simulate (demo). ~92-138 units real.
+  const deepCheck = useCallback(async () => {
+    if (checking) return;
+    setChecking(true); setError(null);
+    try {
+      if (hasKey() && imgBlob) {
+        const extra: ScanResult[] = [result!, await fullScan(imgBlob), await fullScan(imgBlob)];
+        setVariance(buildVariance(extra));
+      } else {
+        setVariance(buildVariance([result!], { generated: true }));
+      }
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setChecking(false);
+    }
+  }, [checking, imgBlob, result]);
+
+  const reset = () => { setPhase('landing'); setResult(null); setImgUrl(null); setImgBlob(null); setError(null); setActiveMask(null); setActiveConcern(null); setVariance(null); setSignature(null); };
 
   const prev = history[1];
   const worst = result ? Object.entries(result.scores).sort((a, b) => a[1] - b[1])[0] : null;
@@ -208,7 +232,8 @@ export default function App() {
                     else { await navigator.clipboard.writeText(text); alert('Copied!'); }
                   } catch {}
                 }}>📤 Share</button>
-                <button className="btn-primary small" onClick={reset}>+ New scan</button>
+                <button className="btn-primary small" onClick={() => setShareOpen(true)}>🃏 Verdict card</button>
+                <button className="btn-ghost small" onClick={reset}>+ New scan</button>
               </div>
             </div>
 
@@ -281,10 +306,51 @@ export default function App() {
                         }}>
                         <div className="tile-top"><span>{CONCERN_LABELS[k] ?? k}</span><b style={{ color: scoreColor(s) }}>{Math.round(s)}</b></div>
                         <div className="bar"><div style={{ width: `${s}%`, background: scoreBarColor(s) }} /></div>
+                        {variance?.metrics[k] && (
+                          <small className={`verdict-tag v-${variance.metrics[k].verdict}`}>
+                            ±{variance.metrics[k].spread} · {VERDICT_LABEL[variance.metrics[k].verdict]}
+                          </small>
+                        )}
                         {result.masks[k]?.length ? <small className="mask-hint">tap to see mask</small> : null}
                       </div>
                     ))}
                   </div>
+
+                  <div className="glass-card uncertainty-card">
+                    <div className="tips-head"><span className="tips-icon">📏</span><b>Verdict — can you trust these numbers?</b></div>
+                    {variance ? (
+                      <>
+                        <p className="unc-summary">{variance.summary}</p>
+                        <div className="unc-chips">
+                          <span className="unc-chip good">✓ trustworthy</span>
+                          <span className="unc-chip warn">~ borderline</span>
+                          <span className="unc-chip bad">✗ noise</span>
+                          <span className="unc-chip bad">■ saturated</span>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="unc-summary">One scan is a number. Re-capturing your face reveals which numbers survive — and which are noise. Run the check to see your error bars.</p>
+                    )}
+                    <button className="btn-ghost small" disabled={checking} onClick={deepCheck}>
+                      {checking ? 'Re-scanning…' : variance ? '↻ Re-run check (3× scan)' : '📏 Run uncertainty check (3× scan)'}
+                    </button>
+                    {variance?.generated && <small className="gen-note">Simulated variance (demo mode) — labeled GENERATED, like a good measurement tool should.</small>}
+                  </div>
+
+                  {signature && (
+                    <div className="glass-card signature-card" onClick={() => setShareOpen(true)}>
+                      <div className="sig-left">
+                        <span className="sig-emoji">🃏</span>
+                        <div>
+                          <b>{signature.persona}</b>
+                          <span className="sig-trait">{signature.trait}</span>
+                          <span className="sig-line">“{signature.line}”</span>
+                        </div>
+                      </div>
+                      <span className="sig-talent">Talent: {signature.talent} · {signature.talentScore}</span>
+                      <span className="sig-hint">tap for share card →</span>
+                    </div>
+                  )}
 
                   <div className="glass-card tips-card">
                     <div className="tips-head"><span className="tips-icon">💡</span><b>Glow-up Focus</b></div>
@@ -296,6 +362,17 @@ export default function App() {
                   {season && (
                     <div className="glass-card season-card"><b>🎨 Your color season:</b> {season}</div>
                   )}
+
+                  <div className="glass-card canons-card">
+                    <div className="tips-head"><span className="tips-icon">⚖️</span><b>Whose ideal? (beauty canons are contested)</b></div>
+                    {CANONS.map((c) => (
+                      <div key={c.name} className="canon">
+                        <b>{c.name}</b> <span className={`canon-kind k-${c.kind}`}>{c.kind}</span>
+                        <p>{c.claim}</p>
+                        <small>{c.citation}</small>
+                      </div>
+                    ))}
+                  </div>
 
                   {Object.keys(result.colors).length > 0 && (
                     <div className="colors">
@@ -369,6 +446,37 @@ export default function App() {
             </button>
           ))}
         </nav>
+      )}
+
+      {shareOpen && signature && result && (
+        <div className="modal-backdrop" onClick={() => setShareOpen(false)}>
+          <div className="share-card glass-card" onClick={(e) => e.stopPropagation()}>
+            <button className="share-close" onClick={() => setShareOpen(false)}>✕</button>
+            <div className="share-brand">✨ Glow</div>
+            <div className="share-score">{result.overall ?? '—'}<span>/100</span></div>
+            <div className="share-sig">🃏 {signature.persona}</div>
+            <div className="share-line">“{signature.line}”</div>
+            <div className="share-meta">
+              <span>age {result.skinAge ?? '—'}</span>·<span>type {result.fitzpatrick ?? '—'}</span>·<span>{result.tone ?? '—'}</span>
+            </div>
+            <div className="share-verdicts">
+              {variance && Object.entries(variance.metrics).slice(0, 3).map(([k, m]) => (
+                <span key={k} className={`verdict-tag v-${m.verdict}`}>{CONCERN_LABELS[k] ?? k}: {m.score}±{m.spread}</span>
+              ))}
+            </div>
+            <div className="share-cta">
+              <button className="btn-primary small" onClick={async () => {
+                const text = `My Glow Verdict: ${result.overall}/100 · ${signature.persona} · ${Object.entries(variance?.metrics ?? {}).filter(([,m])=>m.verdict==='trustworthy').length ?? 0}/${Object.keys(variance?.metrics ?? {}).length ?? 0} metrics trustworthy ✨`;
+                try {
+                  if (navigator.share) await navigator.share({ title: 'Glow Verdict', text });
+                  else { await navigator.clipboard.writeText(text); alert('Copied!'); }
+                } catch {}
+              }}>📤 Share</button>
+              <button className="btn-ghost small" onClick={() => setShareOpen(false)}>Close</button>
+            </div>
+            <div className="share-foot">Get your Glow verdict · glow-skin.app</div>
+          </div>
+        </div>
       )}
 
       <footer className="footer">Glow · AI Skin Intelligence · powered by YouCam · built for the YouCam API Hackathon<br /><span className="build-badge">v{BUILD_VERSION} · build {BUILD_DATE}</span></footer>
